@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kindred — Plans your evening from your taste</title>
+  <meta name="description" content="Kindred plans your evening from your taste, not from what's popular. Powered by the Qloo Taste API." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650;9..144,750&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="ambient" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="topbar-wordmark" href="/">Kindred</a>
+    <span id="health-badge" class="badge badge--loading" role="status">Checking connection…</span>
+  </header>
+
+  <main class="page">
+    <!-- Hero -->
+    <section class="hero">
+      <p class="hero-eyebrow">A taste-graph concierge</p>
+      <h1 class="wordmark">Kindred</h1>
+      <p class="hero-line">Plans your evening from your taste, not from what&rsquo;s popular.</p>
+      <p class="hero-sub">Powered by the Qloo Taste API.</p>
+    </section>
+
+    <!-- Seed panel -->
+    <section class="panel seed-panel" aria-labelledby="seed-heading">
+      <h2 id="seed-heading" class="panel-title">Start with a few favourites</h2>
+      <p class="panel-hint">Name things you genuinely love. Kindred resolves them in the taste graph and plans across dinner, film, music, and a book.</p>
+
+      <div id="persona-row" class="persona-row" hidden>
+        <span class="persona-label">Try a persona:</span>
+        <div id="persona-chips" class="persona-chips"></div>
+      </div>
+
+      <form id="seed-form" novalidate>
+        <div id="seed-inputs" class="seed-inputs">
+          <label class="seed-field">
+            <span class="seed-field-label">Favourite 1</span>
+            <input type="text" class="seed-input" name="seed" placeholder="a film you love" autocomplete="off" />
+          </label>
+          <label class="seed-field">
+            <span class="seed-field-label">Favourite 2</span>
+            <input type="text" class="seed-input" name="seed" placeholder="an artist on repeat" autocomplete="off" />
+          </label>
+          <label class="seed-field">
+            <span class="seed-field-label">Favourite 3</span>
+            <input type="text" class="seed-input" name="seed" placeholder="a book you couldn&rsquo;t put down" autocomplete="off" />
+          </label>
+        </div>
+
+        <div class="seed-actions-row">
+          <button type="button" id="add-seed-btn" class="btn btn--ghost">+ Add another favourite</button>
+          <span id="seed-limit-note" class="seed-limit-note" hidden>Up to five favourites</span>
+        </div>
+
+        <label class="seed-field seed-field--location">
+          <span class="seed-field-label">City or neighbourhood <span class="optional">(optional)</span></span>
+          <input type="text" id="location-input" placeholder="City or neighborhood" autocomplete="off" />
+        </label>
+
+        <p id="form-error" class="form-error" role="alert" hidden></p>
+
+        <button type="submit" id="plan-btn" class="btn btn--primary">Plan my evening</button>
+      </form>
+    </section>
+
+    <!-- Loading state -->
+    <section id="loading-state" class="loading-state" hidden aria-live="polite">
+      <div class="spinner" aria-hidden="true"></div>
+      <p class="loading-line">Reading your taste graph&hellip;</p>
+      <div class="skeleton-stack" aria-hidden="true">
+        <div class="skeleton skeleton--wide"></div>
+        <div class="skeleton"></div>
+        <div class="skeleton"></div>
+        <div class="skeleton"></div>
+      </div>
+    </section>
+
+    <!-- Error state -->
+    <section id="error-state" class="error-state" hidden role="alert">
+      <h2 class="error-title">Something interrupted the plan</h2>
+      <p id="error-message" class="error-message">We couldn&rsquo;t reach Kindred just now. Your favourites are still here — try again in a moment.</p>
+      <button type="button" id="retry-btn" class="btn btn--secondary">Retry</button>
+    </section>
+
+    <!-- Profile strip -->
+    <section id="profile-strip" class="panel profile-strip" hidden aria-labelledby="profile-heading">
+      <h2 id="profile-heading" class="panel-title">Your taste profile</h2>
+      <div id="resolved-chips" class="chip-row"></div>
+      <div id="taste-tags" class="tag-row"></div>
+      <div id="unresolved-list" class="unresolved-list"></div>
+    </section>
+
+    <!-- Plan view -->
+    <section id="plan-view" class="plan-view" hidden>
+      <p id="plan-intro" class="plan-intro"></p>
+
+      <div class="refinement-row" role="group" aria-label="Refine this plan">
+        <span class="refinement-label">Refine:</span>
+        <button type="button" class="btn btn--toggle refinement-btn" data-refinement="quieter" aria-pressed="false">Quieter</button>
+        <button type="button" class="btn btn--toggle refinement-btn" data-refinement="closer-to-home" aria-pressed="false">Closer to home</button>
+        <button type="button" class="btn btn--toggle refinement-btn" data-refinement="date-night" aria-pressed="false">Date night</button>
+        <button type="button" class="btn btn--toggle refinement-btn" data-refinement="half-the-budget" aria-pressed="false">Half the budget</button>
+      </div>
+
+      <ol id="plan-timeline" class="timeline"></ol>
+
+      <p id="plan-notes" class="plan-notes"></p>
+
+      <div class="compare-cta">
+        <button type="button" id="compare-btn" class="btn btn--compare">See this plan without Qloo</button>
+        <p class="compare-cta-hint">Same favourites, planned without the taste graph — so you can see what the graph actually adds.</p>
+      </div>
+    </section>
+
+    <!-- Comparison view -->
+    <section id="compare-view" class="compare-view" hidden>
+      <div class="compare-header">
+        <h2 class="compare-title">With the graph, and without it</h2>
+        <button type="button" id="back-to-plan-btn" class="btn btn--secondary">Back to your plan</button>
+      </div>
+
+      <div id="delta-banner" class="delta-banner" role="status"></div>
+
+      <div class="compare-columns">
+        <div class="compare-col compare-col--with">
+          <h3 class="compare-col-title">With the taste graph</h3>
+          <div id="compare-with"></div>
+        </div>
+        <div class="compare-col compare-col--without">
+          <h3 class="compare-col-title">Without Qloo</h3>
+          <div id="compare-without"></div>
+          <p id="baseline-method" class="baseline-method"></p>
+          <p id="baseline-note" class="baseline-note"></p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Kindred — built for the Qloo Agentic Hackathon. Recommendations and evidence lines come from the Qloo taste graph; narration may be assisted by a language model, the picks never are.</p>
+  </footer>
+
+  <script src="/static/app.js" defer></script>
+</body>
+</html>
