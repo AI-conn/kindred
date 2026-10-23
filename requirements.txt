@@ -1,0 +1,6 @@
+# Production dependencies — pinned to the versions the test suite was
+# verified against (2026-10-16 audit: 21 passed). Bump deliberately and
+# re-run the suite in the same change.
+fastapi==0.143.3
+uvicorn[standard]==0.54.0
+httpx==0.28.1
